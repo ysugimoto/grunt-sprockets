@@ -1,0 +1,21 @@
+{
+  "name": "grunt-sprockets",
+  "version": "0.6.0",
+  "description": "Asset management tools like rails for grunt",
+  "main": "tasks/asset.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ysugimoto/grunt-sprockets.git"
+  },
+  "author": "Yoshiaki Sugimoto",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "875bf756cc8977ea19266d4fd972fbd11bbd53dc",
+  "devDependencies": {
+    "grunt-cli": "~0.1.9",
+    "grunt": "~0.4.1"
+  }
+}
