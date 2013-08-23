@@ -4,7 +4,7 @@
   "description": "Asset management tools like rails for grunt",
   "main": "tasks/asset.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/buster-test"
   },
   "repository": {
     "type": "git",
@@ -16,6 +16,7 @@
   "gitHead": "875bf756cc8977ea19266d4fd972fbd11bbd53dc",
   "devDependencies": {
     "grunt-cli": "~0.1.9",
-    "grunt": "~0.4.1"
+    "grunt": "~0.4.1",
+    "buster": "~0.6.12"
   }
 }
