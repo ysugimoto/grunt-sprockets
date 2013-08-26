@@ -2,7 +2,6 @@ var buster    = require('buster');
 var assert    = buster.assertions.assert;
 var refute    = buster.assertions.refute;
 var Sprockets = require('../tasks/sprockets');
-var grunt     = require('grunt');
 
 buster.testCase('SprocketsTest', {
 	

@@ -1,6 +1,6 @@
 var config = module.exports;
 
-config['assets'] = {
+config['sprockets'] = {
 	env: "node",
 	tests: [ 'tests/sprockets.js' ]
 };
