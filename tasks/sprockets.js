@@ -23,8 +23,11 @@
  */
 var grunt = require('grunt');
 var mark;
+var compare;
 
-module.exports = Sprockets;
+if ( ! /grunt$/.test(process.argv[1]) ) {
+	module.exports = Sprockets;
+}
 
 // Register task "sprockets"
 grunt.registerTask('sprockets', 'resolve dependency asset', Sprockets);
@@ -36,7 +39,8 @@ function Sprockets() {
 	    files = conf.files,
 	    out   = "";
 	
-	mark = conf.assetMark || false;
+	mark    = conf.assetMark || false;
+	compare = conf.compare   || [];
 	
 	if ( ! files ) {
 		grunt.log.errorlns('target files is not defined.');
@@ -78,8 +82,17 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
 	           ? Sprockets.loadDirectoryFiles(file).join("")
 	           : (( mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
 	
+	// remove compared section
+	buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/, function(match, not, cond, source) {
+		if( ! not ) {
+			return ( Sprockets.inArray(compare, cond) ) ? source : "";
+		} else {
+			return ( Sprockets.inArray(compare, cond) ) ? "" : source;
+		}
+	});
+	
 	// Resolve dependecy
-	return buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
+	buffer = buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
 		
 		var path = dirs.join('/') + '/' + filePath;
 		
@@ -96,6 +109,8 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
 			return grunt.file.read(path);
 		}
 	});
+	
+	return buffer;
 };
 
 /**
@@ -125,4 +140,17 @@ Sprockets.loadDirectoryFiles = function(path) {
 	});
 		
 	return buffer;
+};
+
+Sprockets.inArray = function(needle, haystack) {
+	var size = needle.length,
+	    ind  = -1;
+	
+	while ( needle[++ind] ) {
+		if ( needle[ind] == haystack ) {
+			return true;
+		}
+	}
+	
+	return false;
 };
