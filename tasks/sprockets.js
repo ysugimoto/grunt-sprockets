@@ -21,9 +21,9 @@
  * 
  * @author Yoshiaki Sugimoto <neo.yoshiaki.sugimoto@gmail.com>
  */
-var grunt = require('grunt');
-var mark;
-var compare;
+var grunt   = require('grunt');
+var mark    = false;
+var compare = [];
 
 if ( ! /grunt$/.test(process.argv[1]) ) {
 	module.exports = Sprockets;
@@ -82,7 +82,7 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
 	           ? Sprockets.loadDirectoryFiles(file).join("")
 	           : (( mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
 	
-	// remove compared section
+	// remove compared sectionlog
 	buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/, function(match, not, cond, source) {
 		if( ! not ) {
 			return ( Sprockets.inArray(compare, cond) ) ? source : "";

@@ -27,5 +27,15 @@ buster.testCase('SprocketsTest', {
 		var result = Sprockets.loadDirectoryFiles('sample/notfound');
 		
 		assert.equals(result, "");
+	},
+	"inArray#Success" : function() {
+		var result = Sprockets.inArray(['aaa', 'bbb'], 'aaa');
+		
+		assert.isTrue(result);
+	},
+	"inArray#Failed" : function() {
+		var result = Sprockets.inArray(['aaa', 'bbb'], 'ccc');
+		
+		assert.isFalse(result);
 	}
 });
