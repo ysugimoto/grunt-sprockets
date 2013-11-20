@@ -54,100 +54,99 @@ function Sprockets(_grunt) {
     });
 }
 
+/*
+ *e Dependency requires
+ * 
+ * @param  string  file   : load target file
+ * @param  boolean isTree : flag of tree requires
+ * @return string  buffer : resolved code buffer
+ */
+Sprockets.resolveDepenencyRequire = function(file, isTree) {
+    var dirs, dir, buffer;
+        
+    if ( ! grunt.file.exists(file) ) {
+        grunt.log.error('Warning: ' + file + ' is not exists.');
+        return;
+    }
+    grunt.log.writeln('Processing: "' + file + '" ...');
     
-    /**
-     * Resolve Dependency requires
-     * 
-     * @param  string  file   : load target file
-     * @param  boolean isTree : flag of tree requires
-     * @return string  buffer : resolved code buffer
-     */
-    Sprockets.resolveDepenencyRequire = function(file, isTree) {
-        var dirs, dir, buffer;
-            
-        if ( ! grunt.file.exists(file) ) {
-            grunt.log.error('Warning: ' + file + ' is not exists.');
-            return;
+    // Get dirname
+    dirs = file.split('/');
+    dirs.pop();
+    
+    buffer = ( isTree )
+               ? Sprockets.loadDirectoryFiles(file).join("")
+               : (( mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
+    
+    // remove compared sectionlog
+    buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/, function(match, not, cond, source) {
+        if( ! not ) {
+            return ( Sprockets.inArray(compare, cond) ) ? source : "";
+        } else {
+            return ( Sprockets.inArray(compare, cond) ) ? "" : source;
         }
-        grunt.log.writeln('Processing: "' + file + '" ...');
-        
-        // Get dirname
-        dirs = file.split('/');
-        dirs.pop();
-        
-        buffer = ( isTree )
-                   ? Sprockets.loadDirectoryFiles(file).join("")
-                   : (( mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
-        
-        // remove compared sectionlog
-        buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/, function(match, not, cond, source) {
-            if( ! not ) {
-                return ( Sprockets.inArray(compare, cond) ) ? source : "";
-            } else {
-                return ( Sprockets.inArray(compare, cond) ) ? "" : source;
-            }
-        });
-        
-        // Resolve dependecy
-        buffer = buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
-            
-            var path = dirs.join('/') + '/' + filePath;
-            
-            if ( ! grunt.file.exists(path) ) {
-                grunt.log.error('Warning: ' + path + ' is not exists.');
-                return "";
-            }
-            
-            if ( isTree ) {
-                grunt.log.oklns(path + ' tree is loaded.');
-                return Sprockets.resolveDepenencyRequire(path, isTree);
-            } else {
-                grunt.log.oklns(path + ' is loaded.');
-                return grunt.file.read(path);
-            }
-        });
-        
-        return buffer;
-    };
+    });
     
-    /**
-     * Resolve Dependency from directory tree
-     * 
-     * @param string path   : directory path
-     * @return Array buffer : code buffer array
-     */
-    Sprockets.loadDirectoryFiles = function(path) {
-        var files,
-            buffer = [];
+    // Resolve dependecy
+    buffer = buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
         
-        if ( ! grunt.file.isDir(path) ) {
-            grunt.log.errorlns('Error: ' + path + ' is not a directory.');
+        var path = dirs.join('/') + '/' + filePath;
+        
+        if ( ! grunt.file.exists(path) ) {
+            grunt.log.error('Warning: ' + path + ' is not exists.');
             return "";
         }
         
-        files = grunt.file.expand({}, path.replace(/\/$/, "") + '/*');
-        files.forEach(function(file) {
-            
-            if ( grunt.file.isFile(file) ) {
-                mark && buffer.push("//---- require from " + file + "\n");
-                buffer.push(grunt.file.read(file));
-                grunt.log.oklns(file + ' is loaded.');
-            }
-                
-        });
-            
-        return buffer;
-    };
-    
-    Sprockets.inArray = function(needle, haystack) {
-        var size = needle.length,
-            ind  = -1;
-        
-        while ( needle[++ind] ) {
-            if ( needle[ind] == haystack ) {
-                return true;
-            }
+        if ( isTree ) {
+            grunt.log.oklns(path + ' tree is loaded.');
+            return Sprockets.resolveDepenencyRequire(path, isTree);
+        } else {
+            grunt.log.oklns(path + ' is loaded.');
+            return grunt.file.read(path);
         }
+    });
+    
+    return buffer;
+};
+
+/**
+ * Resolve Dependency from directory tree
+ * 
+ * @param string path   : directory path
+ * @return Array buffer : code buffer array
+ */
+Sprockets.loadDirectoryFiles = function(path) {
+    var files,
+        buffer = [];
+    
+    if ( ! grunt.file.isDir(path) ) {
+        grunt.log.errorlns('Error: ' + path + ' is not a directory.');
+        return "";
+    }
+    
+    files = grunt.file.expand({}, path.replace(/\/$/, "") + '/*');
+    files.forEach(function(file) {
         
-        return false;
-    };
+        if ( grunt.file.isFile(file) ) {
+            mark && buffer.push("//---- require from " + file + "\n");
+            buffer.push(grunt.file.read(file));
+            grunt.log.oklns(file + ' is loaded.');
+        }
+            
+    });
+        
+    return buffer;
+};
+
+Sprockets.inArray = function(needle, haystack) {
+    var size = needle.length,
+        ind  = -1;
+    
+    while ( needle[++ind] ) {
+        if ( needle[ind] == haystack ) {
+            return true;
+        }
+    }
+    
+    return false;
+};
