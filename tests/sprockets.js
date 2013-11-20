@@ -3,6 +3,8 @@ var assert    = buster.assertions.assert;
 var refute    = buster.assertions.refute;
 var Sprockets = require('../tasks/sprockets');
 
+console.log(Sprockets);
+
 buster.testCase('SprocketsTest', {
 	
 	"resolveDepenencyRequire#Success" : function() {
