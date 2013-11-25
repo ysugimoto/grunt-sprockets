@@ -27,7 +27,6 @@ module.exports = Sprockets;
 var mark    = false;
 var compare = [];
 var grunt   = require('grunt');
-var _path    = require('path');
 
 function Sprockets(_grunt) {
 
@@ -44,7 +43,7 @@ function Sprockets(_grunt) {
             grunt.log.errorlns('target files is not defined.');
             return;
         }
-        
+
         files.forEach(function(file) {
             // Resolve dependency files
             out += Sprockets.resolveDepenencyRequire(file);
@@ -91,7 +90,7 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
     // Resolve dependecy
     buffer = buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
         
-        var path = _path.resolve(dirs.join('/'), '/', filePath);
+        var path = dirs.join('/') + '/' +  filePath;
         
         if ( ! grunt.file.exists(path) ) {
             grunt.log.error('Warning: ' + path + ' is not exists.');
@@ -99,10 +98,8 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
         }
         
         if ( isTree ) {
-            grunt.log.oklns(path + ' tree is loaded.');
             return Sprockets.resolveDepenencyRequire(path, true);
         } else {
-            grunt.log.oklns(path + ' is loaded.');
             return Sprockets.resolveDepenencyRequire(path);
         }
     });
