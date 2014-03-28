@@ -1,8 +1,9 @@
 {
   "name": "grunt-sprockets",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "Asset management tools like rails for grunt",
   "main": "tasks/sprockets.js",
+  "keywords": "grunt, sprockets",
   "scripts": {
     "test": "buster-test"
   },

@@ -68,21 +68,21 @@ function Sprockets(_grunt) {
  */
 Sprockets.resolveDepenencyRequire = function(file, isTree) {
     var dirs, dir, buffer;
-        
+
     if ( ! grunt.file.exists(file) ) {
         grunt.log.error('Warning: ' + file + ' is not exists.');
         return;
     }
     grunt.log.writeln('Processing: "' + file + '" ...');
-    
+
     // Get dirname
     dirs = file.split('/');
     dirs.pop();
-    
+
     buffer = ( isTree )
                ? Sprockets.loadDirectoryFiles(file).join("")
                : (( Sprockets.options.mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
-    
+
     // remove compared sectionlog
     buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/, function(match, not, cond, source) {
         if ( ! not ) {
@@ -91,25 +91,23 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
             return ( Sprockets.inArray(Sprockets.options.compare, cond) ) ? "" : source;
         }
     });
-    
+
     // Resolve dependecy
     buffer = buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
         var path = dirs.join('/') + '/' + filePath;
-        
+
         if ( ! grunt.file.exists(path) ) {
             grunt.log.error('Warning: ' + path + ' is not exists.');
             return "";
         }
-        
+
         if ( isTree ) {
-            grunt.log.oklns(path + ' tree is loaded.');
-            return Sprockets.resolveDepenencyRequire(path, isTree);
+            return Sprockets.resolveDepenencyRequire(path, true);
         } else {
-            grunt.log.oklns(path + ' is loaded.');
-            return grunt.file.read(path);
+            return Sprockets.resolveDepenencyRequire(path);
         }
     });
-    
+
     return buffer;
 };
 
@@ -122,12 +120,12 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
 Sprockets.loadDirectoryFiles = function(path) {
     var files,
         buffer = [];
-    
+
     if ( ! grunt.file.isDir(path) ) {
         grunt.log.errorlns('Error: ' + path + ' is not a directory.');
         return "";
     }
-    
+
     files = grunt.file.expand({}, path.replace(/\/$/, "") + '/*');
     files.forEach(function(file) {
         if ( grunt.file.isFile(file) ) {
