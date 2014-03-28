@@ -24,42 +24,47 @@
 
 module.exports = Sprockets;
 
-var mark    = false;
-var compare = [];
-var grunt   = require('grunt');
+var grunt = require('grunt');
 
 function Sprockets(_grunt) {
 
-    grunt.registerTask('sprockets', 'Resolve dependenct assets', function() {
-        var conf  = grunt.config('sprockets'),
-            base  = conf.base || process.cwd(),
-            files = conf.files,
-            out   = "";
-        
-        mark    = conf.assetMark || false;
-        compare = conf.compare   || [];
-        
+    grunt.registerMultiTask('sprockets', 'Resolve dependenct assets', function() {
+        var options = this.options({
+                banner: '',
+                footer: '',
+                assertMark: false,
+                compare: []
+            }),
+            base   = options.base || process.cwd(),
+            out    = "",
+            banner = grunt.template.process(options.banner),
+            footer = grunt.template.process(options.footer),
+            files  = this.data.files,
+            dest   = this.data.dest;
+
         if ( ! files ) {
             grunt.log.errorlns('target files is not defined.');
             return;
         }
-        
+
+        Sprockets.options = options;
+
         files.forEach(function(file) {
             // Resolve dependency files
             out += Sprockets.resolveDepenencyRequire(file);
         });
-        
-        grunt.log.writeln('Build file: ' + conf.dest + ' ...');
-        grunt.file.write(conf.dest, out);
+
+        grunt.log.writeln('Build file: ' + dest + ' ...');
+        grunt.file.write(dest, banner + out + footer);
     });
 }
 
 /*
  *e Dependency requires
  * 
- * @param  string  file   : load target file
- * @param  boolean isTree : flag of tree requires
- * @return string  buffer : resolved code buffer
+ * @param  string  file    : load target file
+ * @param  boolean istree  : flag of tree requires
+ * @return string  buffer  : resolved code buffer
  */
 Sprockets.resolveDepenencyRequire = function(file, isTree) {
     var dirs, dir, buffer;
@@ -76,20 +81,19 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
     
     buffer = ( isTree )
                ? Sprockets.loadDirectoryFiles(file).join("")
-               : (( mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
+               : (( Sprockets.options.mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
     
     // remove compared sectionlog
     buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/, function(match, not, cond, source) {
-        if( ! not ) {
-            return ( Sprockets.inArray(compare, cond) ) ? source : "";
+        if ( ! not ) {
+            return ( Sprockets.inArray(Sprockets.options.compare, cond) ) ? source : "";
         } else {
-            return ( Sprockets.inArray(compare, cond) ) ? "" : source;
+            return ( Sprockets.inArray(Sprockets.options.compare, cond) ) ? "" : source;
         }
     });
     
     // Resolve dependecy
     buffer = buffer.replace(/^\/\/=\srequire(_tree)?(?:\s+)?(.+)$/mg, function(match, isTree, filePath) {
-        
         var path = dirs.join('/') + '/' + filePath;
         
         if ( ! grunt.file.exists(path) ) {
@@ -126,27 +130,32 @@ Sprockets.loadDirectoryFiles = function(path) {
     
     files = grunt.file.expand({}, path.replace(/\/$/, "") + '/*');
     files.forEach(function(file) {
-        
         if ( grunt.file.isFile(file) ) {
-            mark && buffer.push("//---- require from " + file + "\n");
+            Sprockets.options.mark && buffer.push("//---- require from " + file + "\n");
             buffer.push(grunt.file.read(file));
             grunt.log.oklns(file + ' is loaded.');
         }
-            
     });
-        
+
     return buffer;
 };
 
+/**
+ * Utility inArray
+ * 
+ * @param  string needle
+ * @param  array  haystack
+ * @return bool
+ */
 Sprockets.inArray = function(needle, haystack) {
     var size = needle.length,
         ind  = -1;
-    
+
     while ( needle[++ind] ) {
         if ( needle[ind] == haystack ) {
             return true;
         }
     }
-    
+
     return false;
 };

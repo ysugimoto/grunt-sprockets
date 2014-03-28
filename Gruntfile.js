@@ -3,8 +3,14 @@ module.exports = function(grunt) {
 	// Sample
 	grunt.initConfig({
 		sprockets: {
-			files: ['sample/test.js'],
-			dest: 'out/assets.js'
+			sample: {
+				files: ['sample/test.js'],
+				dest: 'out/assets.js'
+			},
+			sample2: {
+				files: ['sample/test.js'],
+				dest: 'out/assets2.js'
+			}
 		}
 	});
 	
