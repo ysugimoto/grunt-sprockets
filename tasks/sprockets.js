@@ -84,7 +84,7 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
                : (( Sprockets.options.mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
 
     // remove compared sectionlog
-    buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*)\n\/\/=\send/g, function(match, not, cond, source) {
+    buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*?)\n\/\/=\send/g, function(match, not, cond, source) {
         if ( ! not ) {
             return ( Sprockets.inArray(Sprockets.options.compare, cond) ) ? source : "";
         } else {
