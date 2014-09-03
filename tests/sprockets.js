@@ -6,6 +6,14 @@ var Sprockets = require('../tasks/sprockets');
 buster.testCase('SprocketsTest', {
 	
 	"resolveDepenencyRequire#Success" : function() {
+		Sprockets.options = {
+			banner: '',
+			footer: '',
+			assertMark: false,
+			allowDuplicateRequire: false,
+			compare: [],
+			mark: false
+		};
 		var result = Sprockets.resolveDepenencyRequire('sample/test.js');
 		
 		assert.isString(result);
@@ -18,6 +26,14 @@ buster.testCase('SprocketsTest', {
 	},
 	
 	"loadDirectoryFiles#Success" : function() {
+		Sprockets.options = {
+			banner: '',
+			footer: '',
+			assertMark: false,
+			allowDuplicateRequire: true,
+			compare: [],
+			mark: false
+		};
 		var result = Sprockets.loadDirectoryFiles('sample/src');
 		
 		assert.isArray(result);

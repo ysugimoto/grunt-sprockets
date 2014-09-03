@@ -26,16 +26,17 @@ module.exports = Sprockets;
 
 var grunt = require('grunt');
 
-function Sprockets(_grunt) {
+function Sprockets() {
 
     grunt.registerMultiTask('sprockets', 'Resolve dependenct assets', function() {
         var options = this.options({
                 banner: '',
                 footer: '',
                 assertMark: false,
-                compare: []
+                allowDuplicateRequire: true,
+                compare: [],
+                mark: false
             }),
-            base   = options.base || process.cwd(),
             out    = "",
             banner = grunt.template.process(options.banner),
             footer = grunt.template.process(options.footer),
@@ -47,6 +48,7 @@ function Sprockets(_grunt) {
             return;
         }
 
+        Sprockets.loadedFiles = [];
         Sprockets.options = options;
 
         files.forEach(function(file) {
@@ -59,6 +61,8 @@ function Sprockets(_grunt) {
     });
 }
 
+Sprockets.loadedFiles = [];
+
 /*
  *e Dependency requires
  * 
@@ -67,21 +71,34 @@ function Sprockets(_grunt) {
  * @return string  buffer  : resolved code buffer
  */
 Sprockets.resolveDepenencyRequire = function(file, isTree) {
-    var dirs, dir, buffer;
+    var dirs, buffer;
 
     if ( ! grunt.file.exists(file) ) {
-        grunt.log.error('Warning: ' + file + ' is not exists.');
+        grunt.log.error('[Warning]: ' + file + ' is not exists.');
         return;
     }
-    grunt.log.writeln('Processing: "' + file + '" ...');
+
+    // check duplicate require
+    if ( Sprockets.inArray(Sprockets.loadedFiles, file) ) {
+        if ( Sprockets.options.allowDuplicateRequire === false ) {
+            grunt.log.warn('[Skipped]: ' + file + ' has duplicated require.');
+            return;
+        }
+    }
+
+    grunt.log.writeln('[Processing]: "' + file + '" ...');
 
     // Get dirname
     dirs = file.split('/');
     dirs.pop();
 
-    buffer = ( isTree )
-               ? Sprockets.loadDirectoryFiles(file).join("")
-               : (( Sprockets.options.mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
+    // tree or file require
+    if ( isTree ) {
+        buffer = Sprockets.loadDirectoryFiles(file).join("");
+    } else {
+        buffer = (( Sprockets.options.mark ) ? "//---- require from " + file + "\n" : "") + grunt.file.read(file);
+        Sprockets.loadedFiles.push(file);
+    }
 
     // remove compared sectionlog
     buffer = buffer.replace(/\/\/=\sif\s+(!)?\s?(.+)([\s\S]*?)\n\/\/=\send/g, function(match, not, cond, source) {
@@ -97,7 +114,7 @@ Sprockets.resolveDepenencyRequire = function(file, isTree) {
         var path = dirs.join('/') + '/' + filePath;
 
         if ( ! grunt.file.exists(path) ) {
-            grunt.log.error('Warning: ' + path + ' is not exists.');
+            grunt.log.warn('[Warning]: ' + path + ' is not exists.');
             return "";
         }
 
@@ -122,7 +139,7 @@ Sprockets.loadDirectoryFiles = function(path) {
         buffer = [];
 
     if ( ! grunt.file.isDir(path) ) {
-        grunt.log.errorlns('Error: ' + path + ' is not a directory.');
+        grunt.log.errorlns('[Error]: ' + path + ' is not a directory.');
         return "";
     }
 
@@ -131,7 +148,7 @@ Sprockets.loadDirectoryFiles = function(path) {
         if ( grunt.file.isFile(file) ) {
             Sprockets.options.mark && buffer.push("//---- require from " + file + "\n");
             buffer.push(grunt.file.read(file));
-            grunt.log.oklns(file + ' is loaded.');
+            grunt.log.oklns('[Info]: ' + file + ' is loaded.');
         }
     });
 
@@ -141,16 +158,15 @@ Sprockets.loadDirectoryFiles = function(path) {
 /**
  * Utility inArray
  * 
- * @param  string needle
  * @param  array  haystack
+ * @param  string needle
  * @return bool
  */
-Sprockets.inArray = function(needle, haystack) {
-    var size = needle.length,
-        ind  = -1;
+Sprockets.inArray = function(haystack, needle) {
+    var ind  = -1;
 
-    while ( needle[++ind] ) {
-        if ( needle[ind] == haystack ) {
+    while ( haystack[++ind] ) {
+        if ( haystack[ind] === needle ) {
             return true;
         }
     }

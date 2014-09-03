@@ -1,4 +1,5 @@
 //= require src/script1.js
+//= require src/script1.js
 
 //= if !sample
 document.addEventListener('DOMContentLoaded', function(evt) {
